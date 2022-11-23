@@ -1,17 +1,19 @@
 import {CryptographyClient, KeyVaultKey, EncryptResult, DecryptResult, KeyClient} from "@azure/keyvault-keys";
 import {BoosterConfig} from "@boostercloud/framework-types";
 import {DefaultAzureCredential} from "@azure/identity";
+import {EncryptionRocketConfiguration} from "../types";
 
 export class AzureCryptographyClient {
-  private readonly RSA1_5 = "RSA1_5";
+  private readonly algorithm;
   public readonly azureKeyClient: KeyClient
   public readonly azureCredential: DefaultAzureCredential
 
-  public constructor(readonly config: BoosterConfig) {
+  public constructor(readonly boosterConfig: BoosterConfig, rocketConfiguration: EncryptionRocketConfiguration) {
     // TODO: How does this work? How can I configure the credentials?
     this.azureCredential = new DefaultAzureCredential();
-    const url = `https://${config.appName}.vault.azure.net`;
+    const url = `https://${boosterConfig.appName}.vault.azure.net`;
     this.azureKeyClient = new KeyClient(url, this.azureCredential);
+    this.algorithm = rocketConfiguration.algorithm ?? "RSA1_5"
   }
 
   public async encrypt(keyName: string, value: string): Promise<EncryptResult> {
@@ -31,7 +33,7 @@ export class AzureCryptographyClient {
     }
 
     return await cryptographyClient.encrypt({
-      algorithm: this.RSA1_5,
+      algorithm: this.algorithm,
       plaintext: Buffer.from(value),
     })
   }
@@ -40,7 +42,7 @@ export class AzureCryptographyClient {
     return this.findKey(keyName).then(key => {
       const cryptographyClient = new CryptographyClient(key, this.azureCredential)
       return cryptographyClient.decrypt({
-        algorithm: this.RSA1_5,
+        algorithm: this.algorithm,
         ciphertext: Buffer.from(encryptedValue),
       });
     }).catch(e => {

@@ -2,6 +2,9 @@ import { InfrastructureRocket } from '@boostercloud/framework-provider-azure-inf
 import { Synth } from './synth'
 import { EncryptionRocketConfiguration } from "./types"
 
+export * from './decorators'
+export * from './encryption-rocket'
+
 const AzureRocketFiles = (configuration: EncryptionRocketConfiguration): InfrastructureRocket => ({
   mountStack: Synth.mountStack.bind(Synth, configuration)
 })
