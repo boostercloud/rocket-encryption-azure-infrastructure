@@ -1,6 +1,6 @@
 {
   "name": "rocket-encryption-azure-infrastructuree",
-  "version": "1.0.13",
+  "version": "1.0.17",
   "description": "Encrypt and Decrypt data in Booster",
   "publishConfig": {
     "access": "public"
