@@ -11,7 +11,7 @@ export class AzureCryptographyClient {
   public constructor(readonly boosterConfig: BoosterConfig, rocketConfiguration: EncryptionRocketConfiguration) {
     // TODO: How does this work? How can I configure the credentials?
     this.azureCredential = new DefaultAzureCredential();
-    const url = `https://${boosterConfig.appName}.vault.azure.net`;
+    const url = `https://${boosterConfig.appName}${boosterConfig.environmentName}kv.vault.azure.net`;
     this.azureKeyClient = new KeyClient(url, this.azureCredential);
     this.algorithm = rocketConfiguration.algorithm ?? "RSA1_5"
   }

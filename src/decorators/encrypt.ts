@@ -18,7 +18,7 @@ export function encrypt(klass: Class<EventInterface>, _functionName: string, par
     } else {
       console.log(`TO_ENCRYPT == ADDING PROPERTY ${propertyName} TO ${inspect(boosterConfig.toEncrypt, false, 2, true)}`)
       const toEncryptForClass = boosterConfig.toEncrypt[klass.name] as Array<string>
-      if (toEncryptForClass.length > 0) {
+      if (toEncryptForClass && toEncryptForClass.length > 0) {
         if (!toEncryptForClass.includes(propertyName)) {
           toEncryptForClass.push(propertyName)
           boosterConfig.toEncrypt[klass.name] = toEncryptForClass

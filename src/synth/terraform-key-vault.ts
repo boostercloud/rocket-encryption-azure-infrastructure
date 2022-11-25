@@ -21,7 +21,12 @@ export class TerraformKeyVault {
       resourceGroupName: resourceGroup.name,
       location: resourceGroup.location,
       skuName: rocketConfiguration.skuName ?? "standard",
-      tenantId: rocketConfiguration.tenantId
+      tenantId: rocketConfiguration.tenantId,
+      accessPolicy: [{
+        tenantId: rocketConfiguration.tenantId,
+        objectId: process.env.AZURE_APP_OBJECT_ID,
+        keyPermissions: ['List', 'Get', 'Create', 'Encrypt', 'Decrypt', 'Sign', 'Verify']
+      }]
     } as KeyVaultConfig)
   }
 }

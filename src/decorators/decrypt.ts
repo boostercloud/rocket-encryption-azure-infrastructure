@@ -17,7 +17,7 @@ export function decrypt(klass: Class<ReadModelInterface>, _functionName: string,
     } else {
       console.log(`TO_DECRYPT == ADDING PROPERTY ${propertyName} TO ${inspect(boosterConfig.toEncrypt, false, 2, true)}`)
       const toDecryptForClass = boosterConfig.toDecrypt[klass.name] as Array<string>
-      if (toDecryptForClass.length > 0) {
+      if (toDecryptForClass && toDecryptForClass.length > 0) {
         if (!toDecryptForClass.includes(propertyName)) {
           toDecryptForClass.push(propertyName)
           boosterConfig.toDecrypt[klass.name] = toDecryptForClass

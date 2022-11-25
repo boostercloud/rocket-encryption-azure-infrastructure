@@ -5,6 +5,7 @@ import {AzureCryptographyClient} from "../clients";
 export class BoosterCryptography {
 
   public static encryptEvents(eventEnvelopes: Array<EventEnvelope>, boosterConfig: any, azureCryptographyClient: AzureCryptographyClient): Array<EventEnvelope> {
+    console.log("Encrypting events...")
     return eventEnvelopes
       .map((e: EventEnvelope): EventEnvelope => {
         if (e.kind == "event") {
@@ -31,6 +32,7 @@ export class BoosterCryptography {
   }
 
   public static decryptEvents(readModel: ReadModelInterface, readModelName: string, boosterConfig: any, azureCryptographyClient: AzureCryptographyClient): ReadModelInterface {
+    console.log("Decrypting read model...")
     const propertiesToBeDecrypted: Array<string> = boosterConfig.toDecrypt[readModelName]
 
     if (propertiesToBeDecrypted) {
