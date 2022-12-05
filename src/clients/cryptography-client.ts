@@ -9,7 +9,6 @@ export class AzureCryptographyClient {
   public readonly azureCredential: DefaultAzureCredential
 
   public constructor(readonly boosterConfig: BoosterConfig, rocketConfiguration: EncryptionRocketConfiguration) {
-    // TODO: How does this work? How can I configure the credentials?
     this.azureCredential = new DefaultAzureCredential();
     const url = `https://${boosterConfig.appName}${boosterConfig.environmentName}kv.vault.azure.net`;
     this.azureKeyClient = new KeyClient(url, this.azureCredential);
@@ -17,21 +16,20 @@ export class AzureCryptographyClient {
   }
 
   public async encrypt(keyName: string, value: string): Promise<EncryptResult> {
-    let cryptographyClient = {} as CryptographyClient
-    this.findKey(keyName).then(key => {
-      cryptographyClient = new CryptographyClient(key, this.azureCredential)
+    return await this.findKey(keyName).then(key => {
+      return this.encryptWithKey(key, value);
     }).catch(e => {
-      console.log("=== ERROR === ", e)
+      console.log("=== ERROR ===", e)
       console.log(`Could not find a key with keyName ${keyName}. Creating one`)
-      this.createKey(keyName).then(key => {
-        cryptographyClient = new CryptographyClient(key, this.azureCredential)
+      return this.createKey(keyName).then(key => {
+        console.log(`Assigning key ${key.id} to cryptographyClient`)
+        return this.encryptWithKey(key, value);
       })
     })
+  }
 
-    if (!cryptographyClient) {
-      throw new Error(`Could not set cryptography client for key name ${keyName}`)
-    }
-
+  private async encryptWithKey(key: KeyVaultKey, value: string): Promise<EncryptResult> {
+    const cryptographyClient = new CryptographyClient(key, this.azureCredential)
     return await cryptographyClient.encrypt({
       algorithm: this.algorithm,
       plaintext: Buffer.from(value),
@@ -45,8 +43,6 @@ export class AzureCryptographyClient {
         algorithm: this.algorithm,
         ciphertext: Buffer.from(encryptedValue),
       });
-    }).catch(e => {
-      throw new Error(e)
     })
   }
 
