@@ -1,37 +1,37 @@
 import {CryptographyClient, KeyVaultKey, EncryptResult, DecryptResult, KeyClient} from "@azure/keyvault-keys";
 import {BoosterConfig} from "@boostercloud/framework-types";
 import {DefaultAzureCredential} from "@azure/identity";
+import {EncryptionRocketConfiguration} from "../types";
 
 export class AzureCryptographyClient {
-  private readonly RSA1_5 = "RSA1_5";
+  private readonly algorithm;
   public readonly azureKeyClient: KeyClient
   public readonly azureCredential: DefaultAzureCredential
 
-  public constructor(readonly config: BoosterConfig) {
-    // TODO: How does this work? How can I configure the credentials?
+  public constructor(readonly boosterConfig: BoosterConfig, rocketConfiguration: EncryptionRocketConfiguration) {
     this.azureCredential = new DefaultAzureCredential();
-    const url = `https://${config.appName}.vault.azure.net`;
+    const url = `https://${boosterConfig.appName}${boosterConfig.environmentName}kv.vault.azure.net`;
     this.azureKeyClient = new KeyClient(url, this.azureCredential);
+    this.algorithm = rocketConfiguration.algorithm ?? "RSA1_5"
   }
 
   public async encrypt(keyName: string, value: string): Promise<EncryptResult> {
-    let cryptographyClient = {} as CryptographyClient
-    this.findKey(keyName).then(key => {
-      cryptographyClient = new CryptographyClient(key, this.azureCredential)
+    return await this.findKey(keyName).then(key => {
+      return this.encryptWithKey(key, value);
     }).catch(e => {
-      console.log("=== ERROR === ", e)
+      console.log("=== ERROR ===", e)
       console.log(`Could not find a key with keyName ${keyName}. Creating one`)
-      this.createKey(keyName).then(key => {
-        cryptographyClient = new CryptographyClient(key, this.azureCredential)
+      return this.createKey(keyName).then(key => {
+        console.log(`Assigning key ${key.id} to cryptographyClient`)
+        return this.encryptWithKey(key, value);
       })
     })
+  }
 
-    if (!cryptographyClient) {
-      throw new Error(`Could not set cryptography client for key name ${keyName}`)
-    }
-
+  private async encryptWithKey(key: KeyVaultKey, value: string): Promise<EncryptResult> {
+    const cryptographyClient = new CryptographyClient(key, this.azureCredential)
     return await cryptographyClient.encrypt({
-      algorithm: this.RSA1_5,
+      algorithm: this.algorithm,
       plaintext: Buffer.from(value),
     })
   }
@@ -40,11 +40,9 @@ export class AzureCryptographyClient {
     return this.findKey(keyName).then(key => {
       const cryptographyClient = new CryptographyClient(key, this.azureCredential)
       return cryptographyClient.decrypt({
-        algorithm: this.RSA1_5,
+        algorithm: this.algorithm,
         ciphertext: Buffer.from(encryptedValue),
       });
-    }).catch(e => {
-      throw new Error(e)
     })
   }
 

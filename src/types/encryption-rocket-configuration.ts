@@ -1,3 +1,5 @@
 export interface EncryptionRocketConfiguration {
-  example: string // not sure what to add for now
+  skuName: string,
+  tenantId: string,
+  algorithm: "RSA1_5" | "RSA-OAEP" | "RSA-OAEP-256"
 }

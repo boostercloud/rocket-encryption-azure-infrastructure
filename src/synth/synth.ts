@@ -1,15 +1,13 @@
 import {BoosterConfig} from '@boostercloud/framework-types'
 import {ApplicationSynthStack, RocketUtils} from '@boostercloud/framework-provider-azure-infrastructure'
 import {EncryptionRocketConfiguration} from '../types'
-import {BoosterCryptography} from "../core"
 import {TerraformKeyVault} from "./terraform-key-vault";
-import {EventEnvelope} from "@boostercloud/framework-types/dist/envelope";
-import {ReadModelInterface} from "@boostercloud/framework-types/dist/concepts";
+import {inspect} from "util";
 
 export class Synth {
   public static mountStack(
-    configuration: EncryptionRocketConfiguration,
-    config: BoosterConfig,
+    rocketConfiguration: EncryptionRocketConfiguration,
+    boosterConfig: BoosterConfig,
     applicationSynthStack: ApplicationSynthStack,
     utils: RocketUtils
   ): ApplicationSynthStack {
@@ -18,46 +16,25 @@ export class Synth {
     const resourceGroup = applicationSynthStack.resourceGroup!
     const rocketStack = applicationSynthStack.rocketStack ?? []
 
-    this.overrideEventStoreProviderFunction(config);
-    this.overrideReadModelStoreProviderFunction(config);
-
-    console.log("=== ENCRYPTION ROCKET - DEBUG INFO ===")
-    console.log(appPrefix, terraformStack, resourceGroup, rocketStack)
-
     const keyVault = TerraformKeyVault.build(
       terraformStack,
       resourceGroup,
       appPrefix,
-      config.environmentName,
-      utils
+      boosterConfig,
+      utils,
+      rocketConfiguration
     )
+
+    console.log(`Loading Key Vault =>> ${inspect(keyVault, false, 2, true)}`)
 
     rocketStack.push(keyVault)
 
     return applicationSynthStack
   }
 
-  private static overrideEventStoreProviderFunction(config: BoosterConfig): void {
-    const originalEventStoreFunction = config.provider.events.store
-
-    config.provider.events.store = (eventEnvelopes: Array<EventEnvelope>, config: BoosterConfig): Promise<void> => {
-      const encryptedEventEnvelopes: Array<EventEnvelope> = BoosterCryptography.encryptEvents(eventEnvelopes, config)
-      return originalEventStoreFunction(encryptedEventEnvelopes, config)
-    }
-  }
-
-  private static overrideReadModelStoreProviderFunction(config: BoosterConfig): void {
-    const originalReadModelStoreFunction = config.provider.readModels.store
-
-    config.provider.readModels.store = (config: BoosterConfig, readModelName: string, readModel: ReadModelInterface, expectedCurrentVersion?: number): Promise<unknown> => {
-      const decryptedReadModel: ReadModelInterface = BoosterCryptography.decryptEvents(readModel, readModelName, config)
-      return originalReadModelStoreFunction(config, readModelName, decryptedReadModel, expectedCurrentVersion)
-    }
-  }
-
   /* TODO
     public static unmountStack(
-      config: BoosterConfig,
+      boosterConfig: BoosterConfig,
       applicationSynthStack: ApplicationSynthStack
     ): void {
     }*/
