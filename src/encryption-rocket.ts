@@ -32,7 +32,8 @@ export class EncryptionRocket {
 
     this.config.provider.readModels.store = async (boosterConfig: BoosterConfig, readModelName: string, readModel: ReadModelInterface, expectedCurrentVersion?: number): Promise<unknown> => {
       console.log("Calling overridden read model store function")
-      const decryptedReadModel: ReadModelInterface = BoosterCryptography.decryptEvents(readModel, readModelName, boosterConfig, azureCryptographyClient)
+
+      const decryptedReadModel: ReadModelInterface = await BoosterCryptography.decryptEvents(readModel, readModelName, boosterConfig, azureCryptographyClient)
       return originalReadModelStoreFunction(boosterConfig, readModelName, decryptedReadModel, expectedCurrentVersion)
     }
   }

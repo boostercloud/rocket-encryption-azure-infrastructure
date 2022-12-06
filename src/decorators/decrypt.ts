@@ -30,5 +30,4 @@ export function decrypt(klass: Class<ReadModelInterface>, _functionName: string,
       }
     }
   })
-  console.log(`toDecrypt config prope`)
 }
