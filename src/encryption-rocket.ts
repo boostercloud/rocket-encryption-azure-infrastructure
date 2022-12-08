@@ -12,7 +12,7 @@ export class EncryptionRocket {
   }
 
   public setupStoreFunctions() {
-    const azureCryptographyClient = new AzureCryptographyClient(this.config, this.rocketConfiguration)
+    const azureCryptographyClient = new AzureCryptographyClient(this.config, this.rocketConfiguration.algorithm)
     this.overrideEventStoreProviderFunction(azureCryptographyClient)
     this.overrideReadModelStoreProviderFunction(azureCryptographyClient)
   }

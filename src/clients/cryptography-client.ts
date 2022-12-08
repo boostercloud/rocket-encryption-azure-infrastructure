@@ -1,18 +1,24 @@
-import {CryptographyClient, KeyVaultKey, EncryptResult, DecryptResult, KeyClient} from "@azure/keyvault-keys";
+import {
+  CryptographyClient,
+  KeyVaultKey,
+  EncryptResult,
+  DecryptResult,
+  KeyClient,
+  RsaEncryptionAlgorithm
+} from "@azure/keyvault-keys";
 import {BoosterConfig} from "@boostercloud/framework-types";
 import {DefaultAzureCredential} from "@azure/identity";
-import {EncryptionRocketConfiguration} from "../types";
 
 export class AzureCryptographyClient {
   private readonly algorithm;
   public readonly azureKeyClient: KeyClient
   public readonly azureCredential: DefaultAzureCredential
 
-  public constructor(readonly boosterConfig: BoosterConfig, rocketConfiguration: EncryptionRocketConfiguration) {
+  public constructor(readonly boosterConfig: BoosterConfig, algorithm: RsaEncryptionAlgorithm) {
     this.azureCredential = new DefaultAzureCredential();
     const url = `https://${boosterConfig.appName}${boosterConfig.environmentName}kv.vault.azure.net`;
     this.azureKeyClient = new KeyClient(url, this.azureCredential);
-    this.algorithm = rocketConfiguration.algorithm ?? "RSA1_5"
+    this.algorithm = algorithm ?? "RSA1_5"
   }
 
   public async encrypt(keyName: string, value: string): Promise<EncryptResult> {
